@@ -1,0 +1,97 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAPTCHA Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        .message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CAPTCHA Check</h1>
+        <form id="captchaForm">
+            <p id="question"></p>
+            <input type="number" id="answer" required>
+            <button type="submit">Submit</button>
+        </form>
+        <p id="message" class="message"></p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("captchaForm");
+            const questionElement = document.getElementById("question");
+            const answerElement = document.getElementById("answer");
+            const messageElement = document.getElementById("message");
+            const correctUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe-WGR-cUYAm5AP1Dc-Y6dsD1qvGcBy0se9VuW6Mq69s717FQ/viewform";
+
+            // Generate random numbers
+            const num1 = Math.floor(Math.random() * 100);
+            const num2 = Math.floor(Math.random() * 100);
+            const correctAnswer = num1 + num2;
+
+            // Display the question
+            questionElement.textContent = `What is ${num1} + ${num2}?`;
+
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+                const userAnswer = parseInt(answerElement.value, 10);
+
+                if (userAnswer === correctAnswer) {
+                    const now = new Date();
+                    const timestamp = now.getTime();
+                    const lastTimestamp = getCookie("lastTimestamp");
+
+                    if (lastTimestamp) {
+                        const lastTime = parseInt(lastTimestamp, 10);
+                        const elapsedTime = now.getTime() - lastTime;
+
+                        if (elapsedTime < 30 * 60 * 1000) { // 30 minutes
+                            messageElement.textContent = "You have made too many bookings for the day. Please come back tomorrow.";
+                            return;
+                        }
+                    }
+
+                    setCookie("lastTimestamp", timestamp, 1); // Set cookie for 1 day
+                    window.location.href = correctUrl;
+                } else {
+                    messageElement.textContent = "Incorrect answer. Please try again.";
+                }
+            });
+
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "; expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + expires + "; path=/";
+            }
+
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+        });
+    </script>
+</body>
+</html>
